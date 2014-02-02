@@ -9,90 +9,90 @@ items in the store at once.
 from SteamBase import SteamAPI
 
 class BadGameException(Exception):
-	"""Raised when the game passed in is not TF2 or Dota2 (or in a bad format)"""
-	pass
+    """Raised when the game passed in is not TF2 or Dota2 (or in a bad format)"""
+    pass
 
 class BadItemException(Exception):
-	"""Raised when an incorrect item is passed in"""
-	pass
+    """Raised when an incorrect item is passed in"""
+    pass
 
 class GameItems(SteamAPI):
-	"""
-	Returns all of the current items in the TF2 or Dota2 store.
-	See http://wiki.teamfortress.com/wiki/WebAPI/GetPlayerItems for more
-	info on the various fields.
+    """
+    Returns all of the current items in the TF2 or Dota2 store.
+    See http://wiki.teamfortress.com/wiki/WebAPI/GetPlayerItems for more
+    info on the various fields.
 
-	"""
+    """
 
-	def __init__(self, api_key):
-		"""We don't need a SteamID, only an api key here."""
-		SteamAPI.__init__(self, "", api_key)
-		self.tf2_items = None
-		self.dota2_items = None
+    def __init__(self, api_key):
+        """We don't need a SteamID, only an api key here."""
+        SteamAPI.__init__(self, "", api_key)
+        self.tf2_items = None
+        self.dota2_items = None
 
 
-	def _get_items(self, game):
-		"""
-		We could just store the json itself, but I don't like the format returned by Valve.
-		Just doing a little processing on it to make it a bit easier to deal with
+    def _get_items(self, game):
+        """
+        We could just store the json itself, but I don't like the format returned by Valve.
+        Just doing a little processing on it to make it a bit easier to deal with
 
-		"""
+        """
 
-		url = "http://api.steampowered.com/IEconItems_{}/GetSchema/v0001/?key={}".format(game, self.api_key)
-		json_data = self._get_json(url)
+        url = "http://api.steampowered.com/IEconItems_{}/GetSchema/v0001/?key={}".format(game, self.api_key)
+        json_data = self._get_json(url)
 
-		all_items = {}
-		for item in json_data["result"]["items"]:
-			values = {}
-			values['defindex'] = item.get('defindex')
-			values['item_class'] = item.get('item_class')
-			values['item_type_name'] = item.get('item_type_name')
-			values['proper_name'] = item.get('proper_name')
-			values['item_slot'] = item.get('item_slot')
-			values['item_quality'] = item.get('item_quality')
-			values['image_url'] = item.get('image_url')
-			values['image_url_large'] = item.get('image_url_large')
-			values['craft_class'] = item.get('craft_class')
+        all_items = {}
+        for item in json_data["result"]["items"]:
+            values = {}
+            values['defindex'] = item.get('defindex')
+            values['item_class'] = item.get('item_class')
+            values['item_type_name'] = item.get('item_type_name')
+            values['proper_name'] = item.get('proper_name')
+            values['item_slot'] = item.get('item_slot')
+            values['item_quality'] = item.get('item_quality')
+            values['image_url'] = item.get('image_url')
+            values['image_url_large'] = item.get('image_url_large')
+            values['craft_class'] = item.get('craft_class')
 
-			if item.get('capabilities') is not None:
-				capable = item.get('capabilities')
-				capabilities = {}
-				capabilities['nameable'] = capable.get('nameable')
-				capabilities['can_gift_wrap'] = capable.get('can_gift_wrap')
-				capabilities['can_craft_mark'] = capable.get('can_craft_mark')
-				capabilities['can_be_restored'] = capable.get('can_be_restored')
-				capabilities['strange_parts'] = capable.get('strange_parts')
-				capabilities['can_card_upgrade'] = capable.get('can_card_upgrade')
-				values['capabilities'] = capabilities
-			if item.get('used_by_classes') is not None:
-				game_classes = []
-				for character_class in item.get('used_by_classes'):
-					game_classes.append(character_class)
-				values['used_by_classes'] = game_classes
+            if item.get('capabilities') is not None:
+                capable = item.get('capabilities')
+                capabilities = {}
+                capabilities['nameable'] = capable.get('nameable')
+                capabilities['can_gift_wrap'] = capable.get('can_gift_wrap')
+                capabilities['can_craft_mark'] = capable.get('can_craft_mark')
+                capabilities['can_be_restored'] = capable.get('can_be_restored')
+                capabilities['strange_parts'] = capable.get('strange_parts')
+                capabilities['can_card_upgrade'] = capable.get('can_card_upgrade')
+                values['capabilities'] = capabilities
+            if item.get('used_by_classes') is not None:
+                game_classes = []
+                for character_class in item.get('used_by_classes'):
+                    game_classes.append(character_class)
+                values['used_by_classes'] = game_classes
 
-			all_items[item.get('name')] = values
+            all_items[item.get('name')] = values
 
-		return all_items
+        return all_items
 
-	def get_all(self, game):
-		"""Retrieve all info about all items for specified game"""
-		self.game = ''
-		if game.lower() == 'tf2':
-			if self.tf2_items is None:
-				self.tf2_items = self._get_items('440')
-			return self.tf2_items
-		elif game.lower() == 'dota2':
-			if self.dota2_items is None:
-				self.dota2_items = self._get_items('570')
-			return self.dota2_items
-		else:
-			raise BadGameException("Please enter either TF2 or Dota2")
+    def get_all(self, game):
+        """Retrieve all info about all items for specified game"""
+        self.game = ''
+        if game.lower() == 'tf2':
+            if self.tf2_items is None:
+                self.tf2_items = self._get_items('440')
+            return self.tf2_items
+        elif game.lower() == 'dota2':
+            if self.dota2_items is None:
+                self.dota2_items = self._get_items('570')
+            return self.dota2_items
+        else:
+            raise BadGameException("Please enter either TF2 or Dota2")
 
-	def names(self, game):
-		"""Return names of all items"""
-		if game.lower() == 'tf2':
-			return self.tf2_items.keys()
-		elif game.lower() == 'dota2':
-			return self.dota2_items.keys()
-		else:
-			raise BadGameException("Please enter either TF2 or Dota2")
+    def names(self, game):
+        """Return names of all items"""
+        if game.lower() == 'tf2':
+            return self.tf2_items.keys()
+        elif game.lower() == 'dota2':
+            return self.dota2_items.keys()
+        else:
+            raise BadGameException("Please enter either TF2 or Dota2")
