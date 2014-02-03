@@ -1,5 +1,5 @@
 """
-This API call just snags everything for a Dota2 or TF2 from the API and stores
+This API call just snags everything for Dota2 or TF2 from the API and stores
 it in GameItems.items. Less useful for finding info on a particular item (although
 you can do that just fine as well), and more handy for updating info for all current
 items in the store at once.
@@ -31,15 +31,14 @@ class GameItems(SteamAPI):
         self.dota2_items = None
 
 
-    def _get_items(self, game):
-        """
-        We could just store the json itself, but I don't like the format returned by Valve.
-        Just doing a little processing on it to make it a bit easier to deal with
-
-        """
+    def _get_items(self, game, raw_json=False):
+        """Gets the item info and puts it into an easier to use format."""
 
         url = "http://api.steampowered.com/IEconItems_{}/GetSchema/v0001/?key={}".format(game, self.api_key)
         json_data = self._get_json(url)
+
+        if raw_json:
+            return json_data['result']['items']
 
         all_items = {}
         for item in json_data["result"]["items"]:
@@ -74,25 +73,20 @@ class GameItems(SteamAPI):
 
         return all_items
 
-    def get_all(self, game):
-        """Retrieve all info about all items for specified game"""
+    def get_all(self, game, raw_json=False):
+        """
+        I do a bit of massaging to the get the data in an easier to use format.
+        If you want the exact json from Steam, pass in True for raw_json
+
+        """
         self.game = ''
         if game.lower() == 'tf2':
             if self.tf2_items is None:
-                self.tf2_items = self._get_items('440')
+                self.tf2_items = self._get_items('440', raw_json)
             return self.tf2_items
         elif game.lower() == 'dota2':
             if self.dota2_items is None:
-                self.dota2_items = self._get_items('570')
+                self.dota2_items = self._get_items('570', raw_json)
             return self.dota2_items
-        else:
-            raise BadGameException("Please enter either TF2 or Dota2")
-
-    def names(self, game):
-        """Return names of all items"""
-        if game.lower() == 'tf2':
-            return self.tf2_items.keys()
-        elif game.lower() == 'dota2':
-            return self.dota2_items.keys()
         else:
             raise BadGameException("Please enter either TF2 or Dota2")

@@ -6,7 +6,7 @@ Retrieves information about Steam users from the Steam API.
 import json
 import re
 from SteamBase import SteamAPI
-from bs3.BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 
 
 class ProfileError(Exception):
@@ -21,104 +21,62 @@ class BadGameException(Exception):
     """Raised when the game passed in is not TF2 or Dota2 (or in a bad format)"""
     pass
 
-class SteamUsers(SteamAPI):
+class SteamUser(SteamAPI):
     """ 
-    Creates a new User object that contains various methods to retrieve info about a
-    user. When the object is created, an API call to Steam is automatically made 
-    looking for their Steam info. It can then be retrieved with .get_user_info(), or 
-    other methods can be called.
+    When a SteamUser object is instantiated, a Steam API call is automatically made
+    to retrieve their Steam info.
+
+    Prereq: You need their SteamID and a Steam Web API key.
 
     Usage:
-        my_user = SteamAPI.User()   #Create user
-        my_user.get_user_info()     #Retrieve a dictionary of the user's info
-
-    Many of the methods are dependant on the profile visibilty, which can be
-    retrieved with SteamUsers.is_private(steamid)
+        my_user = SteamUser(steamid, api_key)
+        my_user.avatar # returns a link to their avatar image
 
     """
 
     def __init__(self, steam_id, api_key):
         """Sets SteamID and API key, as well as retrieving this user's info"""
         SteamAPI.__init__(self, steam_id, api_key)
-        self.user_info = self._get_user_info()
-        if self.good_id:
-            self.visibility = self.user_info['profile_visible']
-        self.games_dict = {}
+        self._get_user_info()
+        self.games_dict = None
+
 
     def _get_user_info(self):
-        """
-        Called during __init__. Returns a user's profile visibility, time Steam Account
-        was created, Steam Username, Profile URL, and avatar URL in a dictionary. 
-        Retrieve this info with get_user_info
-
-        """
+        "Called during __init__ to retrieve basic user info"
 
         url = "http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key={}&steamids={}".format(self.api_key, self.steam_id)
         json_data = self._get_json(url)
-
-        # A lot of what we do will depend on the visibility of the profile, so we'll 
-        # check this first. 3 means it's public, 2 and 1 essentially mean it's private.
-        profile_visibility = False
+        self.raw_json = json_data
+        self.visible = False
         if len(json_data['response']['players']) == 0:
-            self.good_id = False
+            raise ProfileError('Error loading profile')
         else:
-            self.good_id = True
             if json_data['response']['players'][0]['communityvisibilitystate'] == 3:
-                profile_visibility = True
-
-            timecreated = None
-            if profile_visibility:
-                timecreated = self._date(json_data['response']['players'][0]['timecreated'])
-
-            username = json_data['response']['players'][0]['personaname']
-            profileurl = json_data["response"]["players"][0]["profileurl"]
-            avatar = json_data['response']['players'][0]['avatarfull']
-
-            return {'profile_visible': profile_visibility, 'timecreated': timecreated,
-                    'username': username, 'profileurl': profileurl, 'avatar': avatar}
-
-    def get_steam(self):
-        return self.steam_id
-
-    def get_user_info(self):
-        """The user info was already retrieved, just return it now"""
-        return self.user_info
-
-    def get_username(self):
-        return self.user_info['username']
-
-    def get_time_created(self):
-        return self.user_info['timecreated']
-
-    def get_profileurl(self):
-        return self.user_info['profileurl']
-
-    def get_avatar(self):
-        return self.user_info['avatar']
-
-    def is_visible(self):
-        return self.visibility
+                self.visible = True
+            self.timecreated = None
+            if self.visible:
+                self.timecreated = self._date(json_data['response']['players'][0]['timecreated'])
+            self.username = json_data['response']['players'][0]['personaname']
+            self.profileurl = json_data["response"]["players"][0]["profileurl"]
+            self.avatar = json_data['response']['players'][0]['avatarfull']            
 
 
     def get_games(self):
         """
         Currently, Steam offers no API call to get a user's games. However, if the
         profile is public we can snag them from the source of the page. Kind of a
-        nasty hack, so hopefully Steam adds an  API call for this. Required BS3 for some
-        scraping.
+        nasty hack, so hopefully Steam adds an  API call for this. 
 
         Returns a dict mapping game_name -> appid
 
         """
-
-        # Only run if the profile is visible
-        if self.visibility:
+        if self.visible:
             page = self._open_url("http://steamcommunity.com/profiles/{}/games?tab=all".format(self.steam_id)).read()
             json_begin = page.find('rgGames = [')
             json_end = page.find('}];', json_begin + 1)
             games_info = page[json_begin+10:json_end + 2]
             json_data = json.loads(games_info)
-            games_dict = {}
+            self.games_dict = {}
             for game in json_data:
                 appid = int(game['appid'])
                 game_name = game['name']
@@ -126,24 +84,25 @@ class SteamUsers(SteamAPI):
                     hours_played = float(game['hours_forever'].replace(',', '')) # Remove commas for numbers over 999
                 else:
                     hours_played = 0.0
-                games_dict[appid] = {'appid': appid, 'game_name': game_name, 'hours': hours_played}
-            self.games_dict = games_dict
-            return games_dict
+                self.games_dict[appid] = {'appid': appid, 'game_name': game_name, 'hours': hours_played}
+            return self.games_dict
         else:
             raise ProfileError('Private profile. Cannot retrieve games.')
 
     def get_game_appids(self):
         """Returns just the user's appids"""
-        if self.games_dict:
-            return self.games_dict.keys()
-        else:
+        if self.games_dict is None:
             self.get_games()
-            return self.games_dict.keys()
+        return self.games_dict.keys()
 
-    def get_items(self, game):
+    def get_items(self, game, raw_json=False):
         """
         Return a dictionary of the user's TF2 or Dota2 items.
-        Pass in either 'Dota2' or 'TF2'
+    
+        args:
+            game -- either 'dota2' or 'tf2'
+            raw_json -- pass in True if you want the full json object from Steam, and not the dict constructed
+                         here
 
         Returns the following: status, num_backpack_slots, id, original_id, defindex,
         level, quantity, original_id, tradable, craftable, quality, custom_name,
@@ -151,13 +110,14 @@ class SteamUsers(SteamAPI):
 
         See here for more info on these variables:
         http://wiki.teamfortress.com/wiki/WebAPI/GetPlayerItems
-
+    
         """
 
-        game_id = ''
-        if game.lower() == 'tf2':
+        game_id = None
+        game = game.lower()
+        if game == 'tf2':
             game_id = "440"
-        elif game.lower() == 'dota2':
+        elif game == 'dota2':
             game_id = "570"
         else:
             raise BadGameException("Invalid game. Please call with 'Dota2' or 'TF2'")
@@ -170,8 +130,6 @@ class SteamUsers(SteamAPI):
             raise BackpackError("Invalid SteamID")
         elif status == 15:
             raise BackpackError("Backpack is private")
-        
-        backpack_slots = json_data["result"]["num_backpack_slots"]
 
         all_items ={}
         for item in json_data["result"]["items"]:
@@ -184,6 +142,7 @@ class SteamUsers(SteamAPI):
             values["custom_name"] = item.get("custom_name")
             values["custom_desc"] = item.get("custom_desc")
             values["style"] = item.get("style")
+            defindex = item.get("defindex")
             # Optional Elements
             if item.get("flag_cannot_trade") is None:  
                 values["tradable"] = True
@@ -193,9 +152,10 @@ class SteamUsers(SteamAPI):
                 values["craftable"] = True
             else:
                 values["craftable"] = False
-
-            defindex = item.get("defindex")
             all_items[defindex] = values
+
+        if raw_json:
+            return json_data['result']['items']
 
         return all_items
 
@@ -215,7 +175,6 @@ class SteamUsers(SteamAPI):
 
     def get_gifts(self):
         """Scrape for all of user's current gifts (no API call for this currently) - returns their appid"""
-
         url = "http://steamcommunity.com/profiles/{}/inventory/json/753/1/".format(self.steam_id)
         json_data = self._get_json(url)
         gifts_list = []
@@ -231,10 +190,8 @@ class SteamUsers(SteamAPI):
 
     def get_wishlist(self):
         """Retrieves all appids for games on a user's wishlist (scrapes it, no API call available)."""
-
         url = "http://steamcommunity.com/profiles/{}/wishlist".format(self.steam_id)
         soup = BeautifulSoup(self._open_url(url))
-
         wish_games = soup.findAll("div", "wishlistRow")
         all_games = []
 
@@ -251,14 +208,12 @@ class SteamUsers(SteamAPI):
         """Scrape for a user's groups. No API call avaialble."""
         url = "http://steamcommunity.com/profiles/{}/groups/".format(self.steam_id)
         soup = BeautifulSoup(self._open_url(url))
-
         groups = soup.findAll('div', 'groupBlockMedium')
         all_groups = []
         for group in groups:
             group = group.find('a')
             if group:
                 group_url = group['href']
-                if group_url:
-                    
+                if group_url:                    
                     all_groups.append(group_url)
         return all_groups
