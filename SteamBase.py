@@ -10,6 +10,8 @@ class SteamAPI:
         """Sets the steam id of the user in question and your API key."""
         self.api_key = api_key
         self.steam_id = steam_id
+        self.time = 20
+        self.retries = 3
 
 
     def _get_json(self, url, params = None):
@@ -20,7 +22,17 @@ class SteamAPI:
             return json.load(self._open_url(url % params))
 
     def _open_url(self, url):
-        """Put here to make catching exceptions easier"""
+        """
+        Put here to make catching exceptions easier
+        
+        Sometimes Steam seems to throttle your requests if you're hitting them a bit hard.
+        If you get an HTTPError from that, it will pause and retry a few times, which usually
+        results in Steam letting your next requests go through. If it fails all the retries, it
+        will just return None and continue on.
+
+        TODO - better error logging for failed requests.
+
+        """
         try:
             return urllib2.urlopen(url)
         except urllib2.URLError as e:
@@ -31,16 +43,16 @@ class SteamAPI:
         except ValueError as e:
             print 'Not a proper URL'
         except:
-            return self._retry(url, 20, 3)
+            return self._retry(url, self.time, self.retries)
 
-    def _retry(self, url, time, retries):
-        """Retries n number of times, with time between each"""
-        print "{} is unreachable, retrying {} number of times".format(url, retries)
-        for num in range(retries):
+    def _retry(self, url):
+        """Retries your request n number of times"""
+        print "{} is unreachable, retrying {} number of times".format(url, self.retries)
+        for num in range(self.retries):
             try:
                 return urllib2.urlopen(url)
             except:
-                sleep(time)
+                sleep(self.time)
         return None
 
     def _date(self, date):
