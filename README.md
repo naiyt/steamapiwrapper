@@ -31,7 +31,7 @@ Get the current name and price of all Steam Games
 
 	all_games = games.get_all('US') # Pass in the Country Code
 	for game in all_games:
-		print "{} - price".format(game.name, game.price)
+		print "{} - price: {}".format(game.name, game.price)
 
 `Games.get_all()` returns a generator that retrieves 150 games from the Steam API at a time, so you can easily create the object and only use as much as you need.
 
@@ -57,7 +57,7 @@ Find all DLC in the Steam Store
 
 	dlc = [x for x in games.get_all('US') if x.type == 'dlc']
 
-**Note**: Games.get_all() returns an generator that (by default) retrieves 150 games from the Steam API per call. Iterating over the values with a for loop will give you results quickly for each call. A list comprehension like this works as well, but it will take some time for the call to finish (as it has to make many calls to the Steam API) and for you to see any results.
+**Note**: Games.get_all() returns an generator that (by default) retrieves 150 games from the Steam API per call. Iterating over the values with a for loop will give you results quickly for each call. A list comprehension like this works as well, but it will take some time for the call to finish (as it has to make many calls to the Steam API).
 
 
 Want to parse the JSON returned by Steam yourself?
