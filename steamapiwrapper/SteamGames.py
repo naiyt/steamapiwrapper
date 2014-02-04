@@ -57,7 +57,6 @@ class Games(SteamAPI):
             self.appids_to_names, self.names_to_appids = self.get_ids_and_names()
         urls = self._get_urls(self.appids_to_names.keys(), cc)
         for url in urls:
-            print "Making next API call..."
             for game in self._get_games_from(url):
                 yield game
 
@@ -73,7 +72,6 @@ class Games(SteamAPI):
         """Given a list of appids, returns their Game objects"""
         urls = self._get_urls(appids, cc)
         for url in urls:
-            print "Opening a new page of games..."
             for game in self._get_games_from(url):
                 yield game
 
@@ -94,17 +92,20 @@ class Games(SteamAPI):
 
     def get_id(self, game_name):
         """Given an appid, returns the game name"""
+        if self.appids_to_names is None or self.names_to_appids is None:
+            self.appids_to_names, self.names_to_appids = self.get_ids_and_names()
         if game_name in self.names_to_appids:
             return self.names_to_appids[game_name]
 
     def get_name(self, appid):
         """Given a game name returns its appid"""
+        if self.appids_to_names is None or self.names_to_appids is None:
+            self.appids_to_names, self.names_to_appids = self.get_ids_and_names()
         if appid in self.appids_to_names:
             return self.appids_to_names[appid]
 
     def _chunks(self, params, number):
         """Breaks a list into a set of equally sized chunked lists, with remaining entries in last list"""
-        print "Setting things up..."
         for i in xrange(0, len(params), number):
             yield params[i:i+number]
 
@@ -130,7 +131,8 @@ class Game(SteamAPI):
             if self.success:
                 self.store_url = self._store_url(self.appid)
                 data = game_json['data']
-                self.type = ['type']
+                self.raw_json = data
+                self.type = data['type']
                 self.descriptidataon = data['detailed_description']
 
                 # Some appids don't have names

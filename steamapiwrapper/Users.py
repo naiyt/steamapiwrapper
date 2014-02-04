@@ -63,9 +63,10 @@ class SteamUser(SteamAPI):
 
     def get_games(self):
         """
-        Currently, Steam offers no API call to get a user's games. However, if the
-        profile is public we can snag them from the source of the page. Kind of a
-        nasty hack, so hopefully Steam adds an  API call for this. 
+        TODO - Valve finally added an API call for this! Huzzah! Implement with this:
+
+        https://developer.valvesoftware.com/wiki/Steam_Web_API#GetOwnedGames_.28v0001.29
+
 
         Returns a dict mapping game_name -> appid
 
@@ -126,6 +127,7 @@ class SteamUser(SteamAPI):
         json_data = self._get_json(url)
 
         status = json_data["result"]["status"]    # Status codes are 1, 8, 15, 18
+
         if status == 8 or status == 18:
             raise BackpackError("Invalid SteamID")
         elif status == 15:
