@@ -62,40 +62,17 @@ class SteamUser(SteamAPI):
 
 
     def get_games(self):
-        """
-        TODO - Valve finally added an API call for this! Huzzah! Implement with this:
-
-        https://developer.valvesoftware.com/wiki/Steam_Web_API#GetOwnedGames_.28v0001.29
-
-
-        Returns a dict mapping game_name -> appid
-
-        """
+        """Returns a list of dictionaries containing information about the games a user owns."""
         if self.visible:
-            page = self._open_url("http://steamcommunity.com/profiles/{}/games?tab=all".format(self.steam_id)).read()
-            json_begin = page.find('rgGames = [')
-            json_end = page.find('}];', json_begin + 1)
-            games_info = page[json_begin+10:json_end + 2]
-            json_data = json.loads(games_info)
-            self.games_dict = {}
-            for game in json_data:
-                appid = int(game['appid'])
-                game_name = game['name']
-                if 'hours_forever' in game:
-                    hours_played = float(game['hours_forever'].replace(',', '')) # Remove commas for numbers over 999
-                else:
-                    hours_played = 0.0
-                self.games_dict[appid] = {'appid': appid, 'game_name': game_name, 'hours': hours_played}
+            url =  'http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key={}&steamid={}&format=json&include_played_free_games=1&include_appinfo=1'.format(
+                self.api_key, self.steam_id)
+            json_data = self._get_json(url)
+            self.games_dict = json_data['response']['games']
             return self.games_dict
         else:
             raise ProfileError('Private profile. Cannot retrieve games.')
-
-    def get_game_appids(self):
-        """Returns just the user's appids"""
-        if self.games_dict is None:
-            self.get_games()
-        return self.games_dict.keys()
-
+        
+        
     def get_items(self, game, raw_json=False):
         """
         Return a dictionary of the user's TF2 or Dota2 items.

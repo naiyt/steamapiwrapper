@@ -11,9 +11,9 @@ the of info being returned.
 
 """
 
-from GameItems import GameItems
-from Users import SteamUser
-from SteamGames import Games 
+from steamapiwrapper.GameItems import GameItems
+from steamapiwrapper.Users import SteamUser
+from steamapiwrapper.SteamGames import Games 
 import unittest
 
 test_steam_id = # Enter a steam ID to test here
@@ -44,7 +44,6 @@ class SteamAPITests(unittest.TestCase):
 
     def test_user_games(self):
         self.user.get_games()
-        self.user.get_game_appids()
 
     def test_user_items(self):
         self.user.get_items('tf2')
