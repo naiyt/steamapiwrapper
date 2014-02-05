@@ -10,7 +10,7 @@ class SteamAPI:
         """Sets the steam id of the user in question and your API key."""
         self.api_key = api_key
         self.steam_id = steam_id
-        self.time = 20
+        self.time = 10
         self.retries = 3
 
 
@@ -39,7 +39,7 @@ class SteamAPI:
             print 'URLError = ' + str(e.reason)
         except urllib2.HTTPError as e:
             print 'HTTPError = ' + str(e.code)
-            return self._retry(self, url, 5, 5)
+            return self._retry(self, url, self.time, self.tries)
         except ValueError as e:
             print 'Not a proper URL'
         except:

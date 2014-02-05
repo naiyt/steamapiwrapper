@@ -31,7 +31,7 @@ class Games(SteamAPI):
         num -- number of games to query per call. The default 150 should work in most cases.
 
         """
-        self.num = 150 if num is None else num
+        self.num = 25 if num is None else num
         self.appids_to_names, self.names_to_appids = None, None
 
     def _create_url(self, appids, cc):
