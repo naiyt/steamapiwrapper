@@ -3,6 +3,9 @@ import datetime
 import urllib2
 from time import sleep
 
+class SteamError(Exception):
+    pass
+
 class SteamAPI:
     """Base class for our other Steam API classes"""
 
@@ -53,7 +56,8 @@ class SteamAPI:
                 return urllib2.urlopen(url)
             except:
                 sleep(self.time)
-        return None
+        raise SteamError('Can\'t connect to Steam. Try again later.')
+        
 
     def _date(self, date):
         return datetime.datetime.fromtimestamp(int(date)).strftime('%Y-%m-%d %H:%M:%S')
