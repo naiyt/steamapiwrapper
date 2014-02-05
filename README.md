@@ -7,6 +7,11 @@ The Steam Web API is a little poorly documented, and there are a lot of things t
 
 There's lots of cool things you can do with this! See below for examples.
 
+Demo
+----
+
+[See this page for a simple example which updates the total price of all Steam games once a day.](http://buyallofsteam.appspot.com)
+
 Installation
 ============
 
