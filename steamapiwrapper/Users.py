@@ -184,7 +184,7 @@ class SteamUser(SteamAPI):
         return all_games
 
     def get_groups(self):
-        """Scrape for a user's groups. No API call avaialble."""
+        """Scrape for a user's groups. No API call available."""
         url = "http://steamcommunity.com/profiles/{}/groups/".format(self.steam_id)
         soup = BeautifulSoup(self._open_url(url))
         groups = soup.findAll('div', 'groupBlockMedium')
