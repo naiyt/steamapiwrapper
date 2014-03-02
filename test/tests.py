@@ -7,7 +7,7 @@ just disable those tests.
 
 TODO - These are really basic tests that just make sure all of the methods 
 are executing without errors. Would probably be good to do some tests that verify
-the of info being returned.
+the info being returned.
 
 """
 
