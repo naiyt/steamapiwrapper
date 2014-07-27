@@ -123,6 +123,9 @@ class Game(SteamAPI):
         that the game object should have. Not all of these exist on all
         appids, so there's some defaults whenever there is a key error.
 
+        TODO: This is so awful. Rewrite this whole ugly method into
+        smaller ones.
+
         """
 
         self.appid = appid

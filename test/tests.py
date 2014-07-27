@@ -1,73 +1,39 @@
-"""
-To run these tests, place your api key below, as well as a Steam ID to test.
-
-For the user tests to work, make sure to use a Steam ID with a PUBLIC profile,
-that also has public TF2 and Dota 2 inventories. If you don't have one to test with,
-just disable those tests.
-
-TODO - These are really basic tests that just make sure all of the methods 
-are executing without errors. Would probably be good to do some tests that verify
-the info being returned.
-
-"""
-
 from steamapiwrapper.GameItems import GameItems
 from steamapiwrapper.Users import SteamUser
 from steamapiwrapper.SteamGames import Games 
+from steamapiwrapper import SteamBase
 import unittest
 
-test_steam_id = # Enter a steam ID to test here
-api_key = # Enter api key here
-
-class SteamAPITests(unittest.TestCase):
-
+class GameItemsTests(unittest.TestCase):
     def setUp(self):
-        self.games = Games()
-        self.user = SteamUser(test_steam_id, api_key)
-        self.items = GameItems(api_key)
-
-    def tearDown(self):
         pass
 
-    def test_get_all_games(self):
-        games_list = self.games.get_all('US')
-        for i in range(3):
-            games_list.next()
+class SteamBaseTests(unittest.TestCase):
+    def setUp(self):
+        self.api = SteamBase.SteamAPI('steamid', 'apikey')
 
-    def test_specific_game(self):
-        appids = [65710, 66001, 66000]
-        self.games.get_info_for(appids, 'US')
+    def test_get_json_no_params(self, 'http://test_url.com'):
+        pass
 
-    def test_game_ids_names(self):
-        assert self.games.get_id('Team Fortress 2') == 440
-        assert self.games.get_name(440) == 'Team Fortress 2'
+    def test_get_json_with_params(self, 'http://test_url.com'):
+        pass
 
-    def test_user_games(self):
-        self.user.get_games()
+    def test_open_url(self, 'http://test_url.com'):
+        pass
 
-    def test_user_items(self):
-        self.user.get_items('tf2')
-        self.user.get_items('dota2')
-        self.user.get_items('tf2', raw_json=True)
-        self.user.get_items('dota2', raw_json=True)
+    def test_retry(self, 'http://test_url.com'):
+        pass
 
-    def test_user_gifts(self):
-        self.user.get_gifts()
+    def test_date(self, '2014-07-26 20:20:20'):
+        pass
 
-    def test_user_wishlists(self):
-        self.user.get_wishlist()
+class GamesTests(unittest.TestCase):
+    def setUp(self):
+        pass
 
-    def test_user_groups(self):
-        self.user.get_groups()
-
-    def test_tf2_items(self):
-        self.items.get_all('tf2')
-        self.items.get_all('tf2', raw_json=True)
-
-    def test_dota2_items(self):
-        self.items.get_all('dota2')
-        self.items.get_all('dota2', raw_json=True)
-
+class UsersTests(unittest.TestCase):
+    def setUp(self):
+        self.games = Games()
 
 if __name__ == '__main__':
     unittest.main()
