@@ -12,20 +12,20 @@ class SteamBaseTests(unittest.TestCase):
     def setUp(self):
         self.api = SteamBase.SteamAPI('steamid', 'apikey')
 
-    def test_get_json_no_params(self, 'http://test_url.com'):
+    def test_get_json_no_params(self):
         pass
 
-    def test_get_json_with_params(self, 'http://test_url.com'):
+    def test_get_json_with_params(self):
         pass
 
-    def test_open_url(self, 'http://test_url.com'):
+    def test_open_url(self):
         pass
 
-    def test_retry(self, 'http://test_url.com'):
+    def test_retry(self):
         pass
 
-    def test_date(self, '2014-07-26 20:20:20'):
-        pass
+    def test_date(sel):
+        date = '2014-07-26 20:20:20'
 
 class GamesTests(unittest.TestCase):
     def setUp(self):
