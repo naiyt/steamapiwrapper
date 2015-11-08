@@ -1,6 +1,13 @@
 steamapiwrapper
 ===============
 
+NOTE
+----
+
+This project has not been maintained in some time, and I offer no guarantees about whether or not it will be compatible with the current Steam web API.
+
+---
+
 A Steam API wrapper that can be used to retrieve info about all games currently on the Steam Store, info on Steam Users (their basic info [ID, avatar, last logon, etc], all games they own, groups, wishlists, etc), and info on all Dota 2 and Team Fortress 2 items.
 
 The Steam Web API is a little poorly documented, and there are a lot of things that you can't do with it. This wrapper should make those things easier, and do things that the API doesn't directly support -- such as getting a list of a user's gifts.
