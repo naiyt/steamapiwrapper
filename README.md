@@ -1,4 +1,4 @@
-steamapiwrapper
+steamapiwrapper- An Amazing Project
 ===============
 
 NOTE
