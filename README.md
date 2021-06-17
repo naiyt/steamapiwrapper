@@ -4,7 +4,7 @@ steamapiwrapper
 NOTE
 ----
 
-This project has not been maintained in some time, and I offer no guarantees about whether or not it will be compatible with the current Steam web API.
+This project is archived, and hasn't been updated in over 7 years! I have no idea if it still works. I would not recommend using it.
 
 ---
 
